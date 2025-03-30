@@ -1,0 +1,160 @@
+<div class="task-dashboard">
+    <h2>Task Management</h2>
+    
+    <!-- <div class="notification-bar mb-3">
+        <h4>Notifications:</h4>
+        <ul>
+            <li *ngFor="let note of notifications$ | async">
+                {{ note.message }} – {{ note.timestamp | date:'shortTime' }}
+            </li>
+        </ul>
+    </div> -->
+    
+    <div class="view-toggle mb-3">
+        <button class="btn btn-secondary me-2" (click)="switchView('list')">List View</button>
+        <button class="btn btn-secondary" (click)="switchView('kanban')">Kanban View</button>
+    </div>
+    
+    <div *ngIf="selectedView === 'list'">
+        <form [formGroup]="form" (ngSubmit)="addTask()">
+            <div *ngIf="currentUser?.role === 'Manager'">
+                <div class="form-group mb-2">
+                    <label for="title">Task Title</label>
+                    <input id="title" formControlName="title" class="form-control" placeholder="Enter task title">
+                </div>
+                <div class="form-group mb-2">
+                    <label for="description">Description</label>
+                    <textarea id="description" formControlName="description" class="form-control" placeholder="Enter task description"></textarea>
+                </div>
+                <div class="form-group mb-2">
+                    <label for="dueDate">Due Date</label>
+                    <input id="dueDate" formControlName="dueDate" type="date" class="form-control">
+                </div>
+                <div class="form-group mb-2">
+                    <label for="project">Project Name</label>
+                    <input id="project" formControlName="project" class="form-control" placeholder="Enter project name">
+                </div>
+                <div class="form-group mb-2">
+                    <label for="assignedTo">Assign Task To (Member Email)</label>
+                    <input id="assignedTo" formControlName="assignedTo" class="form-control" placeholder="Enter member email">
+                </div>
+                <button type="submit" class="btn btn-primary">Add Task</button>
+            </div>
+        </form>
+      
+        <div class="task-list mt-3">
+            <h3>Tasks List</h3>
+            <ul class="list-group">
+                <li *ngFor="let task of tasks" class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ task.title }}</strong>
+                        <span [ngClass]="{ 'badge bg-warning': task.status === 'To-Do', 'badge bg-info': task.status === 'In Progress', 'badge bg-success': task.status === 'Done' }">
+                            {{ task.status }}
+                        </span>
+                        <div *ngIf="currentUser?.role === 'Manager'">
+                            <small>Description: {{ task.description }}</small><br>
+                            <small>Due Date: {{ task.dueDate | date }}</small><br>
+                            <small>Project: {{ task.project }}</small><br>
+                            <small>Assigned To: {{ task.assignedTo }}</small>
+                        </div>
+                        <div *ngIf="currentUser?.role === 'Member'">
+                            <small>Description: {{ task.description }}</small><br>
+                            <small>Due Date: {{ task.dueDate | date }}</small><br>
+                            <small>Project: {{ task.project }}</small><br>
+                            <small>Assigned To: {{ task.assignedTo }}</small>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="action-buttons d-flex flex-wrap">
+                            <button class="btn btn-sm btn-secondary me-2 action-btn" (click)="updateTaskStatus(task, 'In Progress')">In Progress</button>
+                            <button class="btn btn-sm btn-success me-2 action-btn" (click)="updateTaskStatus(task, 'Done')">Done</button>
+                            <button *ngIf="currentUser?.role === 'Manager'" class="btn btn-sm btn-danger me-2 action-btn" (click)="deleteTask(task)">Delete</button>
+                            <button *ngIf="currentUser?.role === 'Manager'" class="btn btn-sm btn-primary action-btn" (click)="startReassign(task)">Reassign</button>
+                        </div>       
+                    </div>
+                </li>
+                <li *ngIf="selectedTaskToReassign" class="list-group-item reassign-form">
+                    <div>
+                        <p>Reassign task "{{ selectedTaskToReassign.title }}" to:</p>
+                        <input type="email" [(ngModel)]="newAssignedTo" placeholder="Enter new member email" class="form-control form-control-sm" />
+                        <input type="date" [(ngModel)]="newDueDate" class="form-control form-control-sm mt-1" />
+                        <div class="mt-1">
+                            <button class="btn btn-sm btn-success me-1" (click)="submitReassignment()">Submit</button>
+                            <button class="btn btn-sm btn-secondary" (click)="selectedTaskToReassign = null">Cancel</button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div *ngIf="selectedView === 'kanban'" class="kanban-view">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="kanban-column">
+                    <div class="kanban-column-header">
+                    <h3>To-Do</h3>
+                </div>
+                <div cdkDropList  id="todoList" [cdkDropListData]="todoTasks" [cdkDropListConnectedTo]="['inprogressList', 'doneList']" (cdkDropListDropped)="onDrop($event, 'To-Do')" class="kanban-column-body">
+                    <div *ngFor="let task of todoTasks" cdkDrag class="kanban-card">
+                        <div class="kanban-card-header">
+                            <span [ngClass]="{ 'badge bg-warning': task.status === 'To-Do', 'badge bg-info': task.status === 'In Progress', 'badge bg-success': task.status === 'Done' }" class="status-badge">
+                                {{ task.status }}
+                            </span>
+                        </div>
+                        <div class="kanban-card-body">
+                            <h5>{{ task.title }}</h5>
+                            <p *ngIf="task.description">{{ task.description }}</p>
+                            <p *ngIf="task.dueDate"><small>Due: {{ task.dueDate | date:'shortDate' }}</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="kanban-column">
+                <div class="kanban-column-header">
+                    <h3>In Progress</h3>
+                </div>
+                <div cdkDropList  id="inprogressList" [cdkDropListData]="inProgressTasks" [cdkDropListConnectedTo]="['todoList', 'doneList']" (cdkDropListDropped)="onDrop($event, 'In Progress')" class="kanban-column-body">
+                    <div *ngFor="let task of inProgressTasks" cdkDrag class="kanban-card">
+                        <div class="kanban-card-header">
+                            <span [ngClass]="{ 'badge bg-warning': task.status === 'To-Do', 'badge bg-info': task.status === 'In Progress', 'badge bg-success': task.status === 'Done' }" class="status-badge">
+                                {{ task.status }}
+                            </span>
+                        </div>
+                        <div class="kanban-card-body">
+                            <h5>{{ task.title }}</h5>
+                            <p *ngIf="task.description">{{ task.description }}</p>
+                            <p *ngIf="task.dueDate"><small>Due: {{ task.dueDate | date:'shortDate' }}</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="kanban-column">
+                <div class="kanban-column-header">
+                    <h3>Done</h3>
+                </div>
+                <div cdkDropList id="doneList" [cdkDropListData]="doneTasks" [cdkDropListConnectedTo]="['todoList', 'inprogressList']" (cdkDropListDropped)="onDrop($event, 'Done')" class="kanban-column-body">
+                    <div *ngFor="let task of doneTasks" cdkDrag class="kanban-card">
+                        <div class="kanban-card-header">
+                            <span [ngClass]="{ 'badge bg-warning': task.status === 'To-Do', 'badge bg-info': task.status === 'In Progress', 'badge bg-success': task.status === 'Done' }" class="status-badge">
+                                {{ task.status }}
+                            </span>
+                        </div>
+                        <div class="kanban-card-body">
+                            <h5>{{ task.title }}</h5>
+                            <p *ngIf="task.description">{{ task.description }}</p>
+                            <p *ngIf="task.dueDate"><small>Due: {{ task.dueDate | date:'shortDate' }}</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+  

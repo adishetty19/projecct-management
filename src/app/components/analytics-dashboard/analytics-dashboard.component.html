@@ -1,0 +1,61 @@
+<div class="analytics-dashboard">
+    <h2>Analytics Dashboard</h2>
+    
+    <div class="chart-section mb-3"  *ngIf="tasks && tasks.length > 0">
+        <h3>Task Completion Rate Charts</h3>
+        <canvas #myChart width="400" height="200"></canvas>
+    </div>
+
+    <div class="productivity-section mb-3" *ngIf="currentUser?.role==='Manager'">
+        <h3>Team Productivity Metrics</h3>
+        <label for="projInput">Enter Project Name:</label>
+        <input id="projInput" type="text" [(ngModel)]="selectedProject" (ngModelChange)="calculateProductiveMetrics(); calculateDeadlineAdherence()" class="form-control" placeholder="Project Name">
+        <div *ngIf="productivityData">
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Total Tasks</th>
+                        <th>Done</th>
+                        <th>Pending</th>
+                        <th>Efficiency (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ productivityData.total }}</td>
+                        <td>{{ productivityData.done }}</td>
+                        <td>{{ productivityData.pending }}</td>
+                        <td>{{ productivityData.efficiency }}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+          
+    <div class="deadline-adherence-section mb-3">
+        <h3>Deadline Adherence</h3>
+        <div *ngIf="currentUser?.role==='Manager'">
+            <p>Overall Deadline Adherence: {{ deadlineAdherence }}%</p>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" [ngStyle]="{'width.%': deadlineAdherence}"[ngClass]="{ 'bg-success': deadlineAdherence >= 90, 'bg-warning': deadlineAdherence >= 70 && deadlineAdherence < 90, 'bg-danger': deadlineAdherence < 70 }">
+                    {{ deadlineAdherence }}%
+                </div>
+            </div>
+        </div>
+        <div *ngIf="currentUser?.role==='Member'">
+            <p>Your Deadline Adherence: {{ memberDeadlineAdherence }}%</p>
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" [ngStyle]="{'width.%': memberDeadlineAdherence}" [ngClass]="{ 'bg-success': memberDeadlineAdherence >= 90, 'bg-warning': memberDeadlineAdherence >= 70 && memberDeadlineAdherence < 90, 'bg-danger': memberDeadlineAdherence < 70 }">
+                {{ memberDeadlineAdherence }}%
+            </div>
+        </div>
+    </div>
+</div>
+    
+<div class="export-section mb-3">
+        <h3>Export Reports</h3>
+        <button class="btn btn-primary me-2" (click)="exportCSV()">Export CSV</button>
+        <button class="btn btn-secondary" (click)="exportPDF()">Export PDF</button>
+    </div>
+</div>
+  

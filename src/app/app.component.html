@@ -1,0 +1,30 @@
+<div class="container-fluid p-0">
+  <nav class="navbar navbar-expand-lg custom-navbar">
+    <div class="container-fluid p-0">
+      <a class="navbar-brand" href="#">Project Management</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon custom-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav ms-auto">
+          <li class="nav-item" *ngIf="!authService.isLoggedIn()">
+            <a class="nav-link custom-nav-link" routerLink="/login">Login</a>
+          </li>
+          <li class="nav-item" *ngIf="authService.isLoggedIn()">
+            <a class="nav-link custom-nav-link" routerLink="/tasks">Task Dashboard</a>
+          </li>
+          <li class="nav-item" *ngIf="authService.isLoggedIn()">
+            <a class="nav-link custom-nav-link" routerLink="/analytics">Analytics Dashboard</a>
+          </li>
+          <li class="nav-item" *ngIf="authService.isLoggedIn()">
+            <button class="btn btn-link nav-link custom-nav-link" (click)="logout()">Logout</button>
+          </li>
+        </div>
+      </div>
+    </div>
+  </nav>
+</div>
+<div class="container">
+  <app-notification-toast></app-notification-toast>
+  <router-outlet></router-outlet>
+</div>
