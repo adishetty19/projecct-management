@@ -1,5 +1,17 @@
 # ProjectManagement
 
+An advanced project management tool featuring task tracking, analytics, and reporting. Integrated Kanban boards, deadline tracking, and productivity metrics to provide actionable insights. Implemented interactive charts, filters, and exportable reports for data-driven decision-making.
+
+Skills: Angular, Typescript, CSS, HTML, Bootstrap, Rest API
+
+Demo: http://project-manage-dashboard.netlify.app
+
+Login/SignUp credentials
+
+Manager: anyname-manager@example.com
+
+Member: anyname-member@example.com
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.3.
 
 ## Development server
